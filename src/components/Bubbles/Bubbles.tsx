@@ -170,7 +170,7 @@ const Bubbles: React.FC = () => {
                   left: `${b.left}%`,
                   width: b.size,
                   height: b.size,
-                  animationDuration: `${b.duration}s, 4s, 0.35s`,
+                  animationDuration: `${b.duration}s, 8s, 0.35s`,
                   animationDelay: `${b.delay}s, 0s, 0s`,
                 }
           }
