@@ -13,6 +13,7 @@ const random = (min: number, max: number) => Math.random() * (max - min) + min;
 
 const Bubbles: React.FC = () => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const [particles, setParticles] = useState<Array<any>>([]);
   const idRef = useRef(1);
   const spawnTimer = useRef<number | null>(null);
   const mounted = useRef(true);
@@ -23,8 +24,8 @@ const Bubbles: React.FC = () => {
 
     // prepare pop sound
     try {
-      // try a few common paths; project currently has a WAV named "Bubble Pop Shoot! v4.wav"
-      const path = encodeURI('/assets/pop.wav');
+      // use existing WAV file in public/assets (encode spaces)
+      const path = encodeURI('/assets/Bubble Pop Shoot! v4.wav');
       audioRef.current = new Audio(path);
       audioRef.current.preload = 'auto';
       audioRef.current.volume = 0.6;
@@ -71,24 +72,73 @@ const Bubbles: React.FC = () => {
     };
   }, []);
 
-  const handlePop = (id: number) => {
-    // add pop class by replacing bubble with a 'popping' clone that will be removed soon
+  const handlePop = (id: number, event: React.MouseEvent | React.TouchEvent) => {
     const el = document.getElementById(`bubble-${id}`);
     if (el) {
       el.classList.add('pop');
     }
-    // play pop sound (user gesture from click should allow playback)
+    
+    // Play pop sound
     try {
       const a = audioRef.current;
       if (a) {
         a.currentTime = 0;
-        // play may return a promise we can safely ignore
         a.play().catch(() => {});
       }
     } catch (e) {
-      // no-op
+      // ignore
     }
-    // remove from state after animation
+    
+    // Get click/touch coordinates
+    let clickX: number;
+    let clickY: number;
+    
+    if ('touches' in event && event.touches.length > 0) {
+      clickX = event.touches[0].clientX;
+      clickY = event.touches[0].clientY;
+    } else if ('clientX' in event) {
+      clickX = event.clientX;
+      clickY = event.clientY;
+    } else {
+      return;
+    }
+    
+    console.debug('Particle spawn at click:', { clickX, clickY });
+    
+    // Create particles at click position
+    const parts: any[] = [];
+    
+    // Splash particles
+    for (let i = 0; i < 14; i++) {
+      const angle = random(-Math.PI, Math.PI);
+      const dist = random(40, 140);
+      const dx = Math.round(Math.cos(angle) * dist);
+      const dy = Math.round(Math.sin(angle) * dist) - Math.round(random(10, 30));
+      const size = Math.round(random(20, 50));
+      const pid = `p_${Date.now()}_${i}`;
+      parts.push({ id: pid, x: clickX, y: clickY, dx: `${dx}px`, dy: `${dy}px`, size, type: 'splash' });
+    }
+    
+    // Mist particles
+    for (let i = 0; i < 8; i++) {
+      const angle = random(-Math.PI, Math.PI);
+      const dist = random(20, 60);
+      const dx = Math.round(Math.cos(angle) * dist);
+      const dy = Math.round(Math.sin(angle) * dist) - Math.round(random(5, 15));
+      const size = Math.round(random(15, 35));
+      const pid = `m_${Date.now()}_${i}`;
+      parts.push({ id: pid, x: clickX, y: clickY, dx: `${dx}px`, dy: `${dy}px`, size, type: 'mist' });
+    }
+    
+    console.debug('Created particles:', parts.length);
+    setParticles((s) => [...s, ...parts]);
+    
+    // Cleanup particles after animation
+    setTimeout(() => {
+      setParticles((s) => s.filter((p) => !parts.find((pp) => pp.id === p.id)));
+    }, 1200);
+    
+    // Remove bubble after pop animation
     setTimeout(() => {
       setBubbles((s) => s.filter((b) => b.id !== id));
     }, 350);
@@ -108,7 +158,8 @@ const Bubbles: React.FC = () => {
           key={b.id}
           id={`bubble-${b.id}`}
           className="bubble"
-          onClick={() => handlePop(b.id)}
+          onClick={(e) => handlePop(b.id, e)}
+          onTouchStart={(e) => handlePop(b.id, e)}
           onAnimationEnd={(e) => {
             // if float animation ended, cleanup
             // access animationName in a safe, untyped way to satisfy TS
@@ -129,6 +180,21 @@ const Bubbles: React.FC = () => {
         >
           <div className="bubble__inner" />
         </div>
+      ))}
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className={`particle ${p.type === 'mist' ? 'particle--mist' : 'particle--splash'}`}
+          style={{
+            left: p.x,
+            top: p.y,
+            width: p.size,
+            height: p.size,
+            // CSS custom properties for animation delta
+            ['--dx' as any]: p.dx,
+            ['--dy' as any]: p.dy,
+          }}
+        />
       ))}
     </div>
   );

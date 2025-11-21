@@ -46,7 +46,7 @@
   transform: none;
   bottom: 0;
   width: 100%;
-  z-index: 1; /* above background, below content (content has z-index:10) */
+  z-index: 50; /* below bubbles (99999) but above content */
   pointer-events: none;
   display: flex;
   justify-content: center;
@@ -96,20 +96,17 @@
   font-family: Georgia, 'Times New Roman', serif;
 }
 
-/* Pulse keyframes */
+/* Pulse keyframes - without transform to avoid stacking context issues */
 @keyframes pulse {
   0% {
-    transform: scale(1);
     filter: brightness(1);
     opacity: 1;
   }
   50% {
-    transform: scale(1.02);
     filter: brightness(1.06);
     opacity: 0.99;
   }
   100% {
-    transform: scale(1);
     filter: brightness(1);
     opacity: 1;
   }
