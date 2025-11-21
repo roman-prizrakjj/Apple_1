@@ -53,12 +53,34 @@
   align-items: flex-end;
 }
 
+/* Use a pseudo-element to stretch the table part of the image to full width,
+   while the real <img> (product) stays on top to preserve proportions.
+   The mask hides the center area so the product isn't doubled. */
+.menu-page__foreground::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/product-foreground.png');
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+  z-index: 0;
+  pointer-events: none;
+  /* mask out the center vertical band so only the left/right table areas show */
+  -webkit-mask-image: linear-gradient(to right, black 0%, black 14%, transparent 28%, transparent 72%, black 86%, black 100%);
+  mask-image: linear-gradient(to right, black 0%, black 14%, transparent 28%, transparent 72%, black 86%, black 100%);
+}
+
 .menu-page__foreground-img {
   width: 100%;
   height: auto;
-  max-height: 60vh;
+  /* allow the image to be taller to avoid a 'squashed' look */
+  max-height: 75vh;
+  object-fit: contain;
   display: block;
   pointer-events: none;
+  position: relative;
+  z-index: 1; /* above the pseudo-element background */
 }
 
 .menu-page__content h1 {
