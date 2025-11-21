@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import StartScreen from './components/StartScreen/StartScreen';
+import MenuPage from './components/MenuPage/MenuPage';
 import './App.css';
 
 type ViewType = 'start' | 'menu';
@@ -18,10 +19,7 @@ const App: React.FC = () => {
       )}
       
       {currentView === 'menu' && (
-        <div className="menu-placeholder">
-          <h1>Главное меню</h1>
-          <p>Здесь будет меню приложения</p>
-        </div>
+        <MenuPage />
       )}
     </div>
   );
