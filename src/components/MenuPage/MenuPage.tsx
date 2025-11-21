@@ -1,6 +1,7 @@
 
 import React from 'react';
 import './MenuPage.css';
+import Bubbles from '../Bubbles/Bubbles';
 
 const MenuPage: React.FC = () => {
   return (
@@ -28,6 +29,9 @@ const MenuPage: React.FC = () => {
           className="menu-page__foreground-img"
         />
       </div>
+
+      {/* interactive bubbles layer */}
+      <Bubbles />
 
       <div className="menu-page__content">
         {/* Content area — heading removed as requested */}
