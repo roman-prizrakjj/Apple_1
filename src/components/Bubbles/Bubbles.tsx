@@ -11,6 +11,9 @@ type Bubble = {
 
 const random = (min: number, max: number) => Math.random() * (max - min) + min;
 
+// Toggle between bubble styles: 'rainbow' (current) or 'gradient' (new)
+const BUBBLE_STYLE: 'rainbow' | 'gradient' = 'gradient';
+
 const Bubbles: React.FC = () => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [particles, setParticles] = useState<Array<any>>([]);
@@ -40,7 +43,7 @@ const Bubbles: React.FC = () => {
         for (let i = 0; i < spawnCount && toAdd.length + currentCount < MAX_BUBBLES; i++) {
           const id = idRef.current++;
           const left = random(5, 95);
-          const size = Math.round(random(48, 160));
+          const size = Math.round(random(96, 320));
           // make bubbles float slower: increase duration range
           const duration = Number(random(12, 28).toFixed(2));
           const delay = Number(random(0, 1.5).toFixed(2));
@@ -164,12 +167,14 @@ const Bubbles: React.FC = () => {
                   left: `${b.left}%`,
                   width: b.size,
                   height: b.size,
-                  animationDuration: `${b.duration}s, 0.35s`,
-                  animationDelay: `${b.delay}s, 0s`,
+                  animationDuration: `${b.duration}s, 4s, 0.35s`,
+                  animationDelay: `${b.delay}s, 0s, 0s`,
                 }
           }
         >
-          <div className="bubble__inner" />
+          <div className={`bubble__inner bubble__inner--${BUBBLE_STYLE}`}>
+            {BUBBLE_STYLE === 'rainbow' && <span></span>}
+          </div>
         </div>
       ))}
       {particles.map((p) => (
