@@ -7,12 +7,13 @@ type Bubble = {
   size: number; // px
   duration: number; // seconds
   delay: number; // seconds
+  wobbleType: string; // wobble animation type
 };
 
 const random = (min: number, max: number) => Math.random() * (max - min) + min;
 
 // Toggle between bubble styles: 'rainbow' (current) or 'gradient' (new)
-const BUBBLE_STYLE: 'rainbow' | 'gradient' = 'gradient';
+const BUBBLE_STYLE = 'gradient' as 'rainbow' | 'gradient';
 
 const Bubbles: React.FC = () => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
@@ -40,14 +41,16 @@ const Bubbles: React.FC = () => {
         if (currentCount >= MAX_BUBBLES) return s;
         // spawn 1..3 bubbles per tick
         const spawnCount = Math.floor(random(1, 4));
+        const wobbleTypes = ['wobble-horizontal-soft', 'wobble-horizontal-strong', 'wobble-vertical-soft', 'wobble-vertical-strong'];
         for (let i = 0; i < spawnCount && toAdd.length + currentCount < MAX_BUBBLES; i++) {
           const id = idRef.current++;
           const left = random(5, 95);
           const size = Math.round(random(96, 320));
-          // make bubbles float slower: increase duration range
-          const duration = Number(random(12, 28).toFixed(2));
+          // make bubbles float slower: increase duration range with more variation
+          const duration = Number(random(10, 35).toFixed(2));
           const delay = Number(random(0, 1.5).toFixed(2));
-          toAdd.push({ id, left, size, duration, delay });
+          const wobbleType = wobbleTypes[Math.floor(Math.random() * wobbleTypes.length)];
+          toAdd.push({ id, left, size, duration, delay, wobbleType });
         }
         return [...s, ...toAdd];
       });
@@ -172,7 +175,15 @@ const Bubbles: React.FC = () => {
                 }
           }
         >
-          <div className={`bubble__inner bubble__inner--${BUBBLE_STYLE}`}>
+          <div 
+            className={`bubble__inner bubble__inner--${BUBBLE_STYLE}`}
+            style={{
+              animationName: b.wobbleType,
+              animationDuration: '2s',
+              animationTimingFunction: 'ease-in-out',
+              animationIterationCount: 'infinite'
+            }}
+          >
             {BUBBLE_STYLE === 'rainbow' && <span></span>}
           </div>
         </div>

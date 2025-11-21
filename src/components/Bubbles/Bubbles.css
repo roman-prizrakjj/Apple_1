@@ -256,6 +256,27 @@
   }
 }
 
+/* Wobble animations - different deformation types */
+@keyframes wobble-horizontal-soft {
+  0%, 100% { transform: scaleX(1) scaleY(1); }
+  50% { transform: scaleX(1.04) scaleY(0.96); }
+}
+
+@keyframes wobble-horizontal-strong {
+  0%, 100% { transform: scaleX(1) scaleY(1); }
+  50% { transform: scaleX(1.08) scaleY(0.92); }
+}
+
+@keyframes wobble-vertical-soft {
+  0%, 100% { transform: scaleX(1) scaleY(1); }
+  50% { transform: scaleX(0.96) scaleY(1.04); }
+}
+
+@keyframes wobble-vertical-strong {
+  0%, 100% { transform: scaleX(1) scaleY(1); }
+  50% { transform: scaleX(0.92) scaleY(1.08); }
+}
+
 /* Rotating rainbow rings */
 @keyframes rotateRing1 {
   0% { transform: rotate(45deg); }
