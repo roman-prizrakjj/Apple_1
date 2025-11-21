@@ -20,9 +20,9 @@ const Bubbles: React.FC = () => {
 
   // Array of available pop sounds
   const soundFiles = [
-    '/assets/Bubble Pop Shoot! v2.wav',
-    '/assets/Bubble Pop Shoot! v3.wav',
-    '/assets/Bubble Pop Shoot! v4.wav'
+    '/assets/bubble-pop-v2.wav',
+    '/assets/bubble-pop-v3.wav',
+    '/assets/bubble-pop-v4.wav'
   ];
 
   useEffect(() => {
@@ -73,7 +73,7 @@ const Bubbles: React.FC = () => {
     // Play random pop sound
     try {
       const randomSound = soundFiles[Math.floor(Math.random() * soundFiles.length)];
-      const audio = new Audio(encodeURI(randomSound));
+      const audio = new Audio(randomSound);
       audio.volume = 0.6;
       audio.play().catch(() => {});
     } catch (e) {
