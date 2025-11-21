@@ -108,24 +108,24 @@ const Bubbles: React.FC = () => {
     // Create particles at click position
     const parts: any[] = [];
     
-    // Splash particles
-    for (let i = 0; i < 14; i++) {
+    // Main water droplets
+    for (let i = 0; i < 12; i++) {
       const angle = random(-Math.PI, Math.PI);
-      const dist = random(40, 140);
+      const dist = random(30, 100);
       const dx = Math.round(Math.cos(angle) * dist);
-      const dy = Math.round(Math.sin(angle) * dist) - Math.round(random(10, 30));
-      const size = Math.round(random(20, 50));
+      const dy = Math.round(Math.sin(angle) * dist) - Math.round(random(8, 25));
+      const size = Math.round(random(6, 16));
       const pid = `p_${Date.now()}_${i}`;
       parts.push({ id: pid, x: clickX, y: clickY, dx: `${dx}px`, dy: `${dy}px`, size, type: 'splash' });
     }
     
-    // Mist particles
-    for (let i = 0; i < 8; i++) {
+    // Fine mist
+    for (let i = 0; i < 6; i++) {
       const angle = random(-Math.PI, Math.PI);
-      const dist = random(20, 60);
+      const dist = random(15, 50);
       const dx = Math.round(Math.cos(angle) * dist);
-      const dy = Math.round(Math.sin(angle) * dist) - Math.round(random(5, 15));
-      const size = Math.round(random(15, 35));
+      const dy = Math.round(Math.sin(angle) * dist) - Math.round(random(5, 12));
+      const size = Math.round(random(3, 8));
       const pid = `m_${Date.now()}_${i}`;
       parts.push({ id: pid, x: clickX, y: clickY, dx: `${dx}px`, dy: `${dy}px`, size, type: 'mist' });
     }
