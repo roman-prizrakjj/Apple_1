@@ -17,24 +17,16 @@ const Bubbles: React.FC = () => {
   const idRef = useRef(1);
   const spawnTimer = useRef<number | null>(null);
   const mounted = useRef(true);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Array of available pop sounds
+  const soundFiles = [
+    '/assets/Bubble Pop Shoot! v2.wav',
+    '/assets/Bubble Pop Shoot! v3.wav',
+    '/assets/Bubble Pop Shoot! v4.wav'
+  ];
 
   useEffect(() => {
     mounted.current = true;
-
-    // prepare pop sound
-    try {
-      // use existing WAV file in public/assets (encode spaces)
-      const path = encodeURI('/assets/Bubble Pop Shoot! v4.wav');
-      audioRef.current = new Audio(path);
-      audioRef.current.preload = 'auto';
-      audioRef.current.volume = 0.6;
-    } catch (e) {
-      // ignore if audio not available
-      // keep audioRef null
-      // console.debug('pop audio init failed', e);
-      audioRef.current = null;
-    }
 
     const spawn = () => {
       // limit total bubbles to avoid overload
@@ -78,13 +70,12 @@ const Bubbles: React.FC = () => {
       el.classList.add('pop');
     }
     
-    // Play pop sound
+    // Play random pop sound
     try {
-      const a = audioRef.current;
-      if (a) {
-        a.currentTime = 0;
-        a.play().catch(() => {});
-      }
+      const randomSound = soundFiles[Math.floor(Math.random() * soundFiles.length)];
+      const audio = new Audio(encodeURI(randomSound));
+      audio.volume = 0.6;
+      audio.play().catch(() => {});
     } catch (e) {
       // ignore
     }
