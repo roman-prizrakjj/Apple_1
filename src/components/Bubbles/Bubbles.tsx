@@ -8,6 +8,8 @@ type Bubble = {
   duration: number; // seconds
   delay: number; // seconds
   wobbleType: string; // wobble animation type
+  swayAmplitude: number; // vw - амплитуда покачивания
+  swayDirection: number; // 1 или -1 - направление
 };
 
 const random = (min: number, max: number) => Math.random() * (max - min) + min;
@@ -32,25 +34,59 @@ const Bubbles: React.FC = () => {
   useEffect(() => {
     mounted.current = true;
 
+    // Проверка пересечения пузырей
+    const checkOverlap = (newLeft: number, newSize: number, existingBubbles: Bubble[]): boolean => {
+      const newLeftPx = (newLeft / 100) * window.innerWidth;
+      const newRadius = newSize / 2;
+      
+      for (const bubble of existingBubbles) {
+        const existingLeftPx = (bubble.left / 100) * window.innerWidth;
+        const existingRadius = bubble.size / 2;
+        const distance = Math.abs(newLeftPx - existingLeftPx);
+        const minDistance = newRadius + existingRadius + 20; // 20px минимальный зазор
+        
+        if (distance < minDistance) {
+          return true; // пересечение найдено
+        }
+      }
+      return false; // пересечений нет
+    };
+
     const spawn = () => {
       // limit total bubbles to avoid overload
-      const MAX_BUBBLES = 40;
+      const MAX_BUBBLES = 20; // уменьшено с 40
       setBubbles((s) => {
         const toAdd = [] as Bubble[];
         const currentCount = s.length;
         if (currentCount >= MAX_BUBBLES) return s;
-        // spawn 1..3 bubbles per tick
-        const spawnCount = Math.floor(random(1, 4));
+        // spawn 1..2 bubbles per tick (было 1..3)
+        const spawnCount = Math.floor(random(1, 3));
         const wobbleTypes = ['wobble-horizontal-soft', 'wobble-horizontal-strong', 'wobble-vertical-soft', 'wobble-vertical-strong'];
+        
         for (let i = 0; i < spawnCount && toAdd.length + currentCount < MAX_BUBBLES; i++) {
+          let left: number;
+          let size: number;
+          let attempts = 0;
+          const maxAttempts = 10;
+          
+          // Пытаемся найти позицию без пересечений
+          do {
+            left = random(5, 95);
+            size = Math.round(random(160, 360)); // увеличено в 2 раза: было 80-180
+            attempts++;
+          } while (checkOverlap(left, size, [...s, ...toAdd]) && attempts < maxAttempts);
+          
+          // Если не нашли свободное место за 10 попыток, пропускаем этот пузырь
+          if (attempts >= maxAttempts) continue;
+          
           const id = idRef.current++;
-          const left = random(5, 95);
-          const size = Math.round(random(96, 320));
-          // make bubbles float slower: increase duration range with more variation
-          const duration = Number(random(10, 35).toFixed(2));
+          // медленнее: 26-44 секунд (было 10-35)
+          const duration = Number(random(26, 44).toFixed(2));
           const delay = Number(random(0, 1.5).toFixed(2));
           const wobbleType = wobbleTypes[Math.floor(Math.random() * wobbleTypes.length)];
-          toAdd.push({ id, left, size, duration, delay, wobbleType });
+          const swayAmplitude = Number(random(6, 16).toFixed(1)); // 6-16vw
+          const swayDirection = Math.random() > 0.5 ? 1 : -1;
+          toAdd.push({ id, left, size, duration, delay, wobbleType, swayAmplitude, swayDirection });
         }
         return [...s, ...toAdd];
       });
@@ -172,6 +208,8 @@ const Bubbles: React.FC = () => {
                   height: b.size,
                   animationDuration: `${b.duration}s, 8s, 0.35s`,
                   animationDelay: `${b.delay}s, 0s, 0s`,
+                  ['--sway-amplitude' as any]: `${b.swayAmplitude}vw`,
+                  ['--sway-direction' as any]: b.swayDirection,
                 }
           }
         >
