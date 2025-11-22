@@ -9,7 +9,7 @@
 .bubble {
   position: absolute;
   /* start above the visible area so bubbles appear from off-screen */
-  top: -18vh;
+  top: -25vh;
   transform: translateY(0);
   border-radius: 50%;
   display: block;
@@ -62,8 +62,8 @@
     inset -26px 30px 40px rgba(120,170,230,0.35),
     0 0 55px rgba(160,200,255,0.55);
   animation:
-    shimmer 4s ease-in-out infinite alternate,
-    bubble-pulse 7s ease-in-out infinite;
+    shimmer 8s ease-in-out infinite alternate,
+    bubble-pulse 12s ease-in-out infinite;
 }
 
 /* Rainbow style highlights */
@@ -153,27 +153,33 @@
   opacity: 0.8;
 }
 
-/* main float animation: from bottom to above top with horizontal sway */
+/* main float animation: from top to bottom with horizontal sway */
 @keyframes floatUp {
   0% { 
     transform: translate(
       calc(var(--sway-direction, 1) * var(--sway-amplitude, 0vw) * -0.5),
       0
     ); 
-    opacity: 0.98; 
+    opacity: 0; 
+  }
+  5% {
+    opacity: 0.98;
   }
   50% { 
     transform: translate(
       calc(var(--sway-direction, 1) * var(--sway-amplitude, 0vw) * 0.5),
-      60vh
+      80vh
     );
+  }
+  95% {
+    opacity: 0.6;
   }
   100% { 
     transform: translate(
       calc(var(--sway-direction, 1) * var(--sway-amplitude, 0vw) * -0.5),
-      120vh
+      170vh
     ); 
-    opacity: 0.6; 
+    opacity: 0; 
   }
 }
 
@@ -291,22 +297,22 @@
 /* Wobble animations - different deformation types */
 @keyframes wobble-horizontal-soft {
   0%, 100% { transform: scaleX(1) scaleY(1); }
-  50% { transform: scaleX(1.04) scaleY(0.96); }
+  50% { transform: scaleX(1.02) scaleY(0.98); }
 }
 
 @keyframes wobble-horizontal-strong {
   0%, 100% { transform: scaleX(1) scaleY(1); }
-  50% { transform: scaleX(1.08) scaleY(0.92); }
+  50% { transform: scaleX(1.04) scaleY(0.96); }
 }
 
 @keyframes wobble-vertical-soft {
   0%, 100% { transform: scaleX(1) scaleY(1); }
-  50% { transform: scaleX(0.96) scaleY(1.04); }
+  50% { transform: scaleX(0.98) scaleY(1.02); }
 }
 
 @keyframes wobble-vertical-strong {
   0%, 100% { transform: scaleX(1) scaleY(1); }
-  50% { transform: scaleX(0.92) scaleY(1.08); }
+  50% { transform: scaleX(0.96) scaleY(1.04); }
 }
 
 /* Rotating rainbow rings */
@@ -346,15 +352,15 @@
 
 /* Shimmer animation for gradient bubbles */
 @keyframes shimmer {
-  0%   { filter: brightness(1) saturate(1.1); }
-  50%  { filter: brightness(1.18) saturate(1.4); }
-  100% { filter: brightness(1.05) saturate(1.2); }
+  0%   { filter: brightness(1) saturate(1.05); }
+  50%  { filter: brightness(1.12) saturate(1.25); }
+  100% { filter: brightness(1.02) saturate(1.1); }
 }
 
 /* Bubble pulse animation */
 @keyframes bubble-pulse {
   0%   { transform: scale(1); }
-  50%  { transform: scale(1.06); }
+  50%  { transform: scale(1.03); }
   100% { transform: scale(1); }
 }
 
