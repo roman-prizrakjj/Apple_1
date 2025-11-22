@@ -33,6 +33,7 @@
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease;
+  animation: button-pulse 3s ease-in-out infinite;
 }
 
 .start-screen__button:hover {
@@ -65,4 +66,27 @@
   text-transform: uppercase;
   letter-spacing: 6px;
   font-family: Georgia, 'Times New Roman', serif;
+  animation: text-glow 3s ease-in-out infinite;
+  transform: translateZ(0); /* фиксация для предотвращения смещения */
+  backface-visibility: hidden; /* сглаживание анимации */
+}
+
+/* Плавная пульсация кнопки */
+@keyframes button-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Мягкое свечение текста */
+@keyframes text-glow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 10px rgba(43, 74, 92, 0.2));
+  }
+  50% {
+    filter: brightness(1.1) drop-shadow(0 0 20px rgba(43, 74, 92, 0.4));
+  }
 }
