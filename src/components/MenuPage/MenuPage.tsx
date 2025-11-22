@@ -24,7 +24,7 @@ const MenuPage: React.FC = () => {
       {/* Foreground product image (full-width, above background, below UI content) */}
       <div className="menu-page__foreground" aria-hidden="true">
         <img
-          src="/assets/product-foreground.png"
+          src="/assets/product-foreground1.png"
           alt=""
           className="menu-page__foreground-img"
         />

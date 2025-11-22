@@ -8,8 +8,8 @@
 
 .bubble {
   position: absolute;
-  /* start below the visible area so bubbles appear from off-screen */
-  bottom: -18vh;
+  /* start above the visible area so bubbles appear from off-screen */
+  top: -18vh;
   transform: translateY(0);
   border-radius: 50%;
   display: block;
@@ -142,7 +142,7 @@
 /* main float animation: from bottom to above top */
 @keyframes floatUp {
   0% { transform: translateY(0); opacity: 0.98; }
-  100% { transform: translateY(-120vh); opacity: 0.6; }
+  100% { transform: translateY(120vh); opacity: 0.6; }
 }
 
 /* tiny fallback / base pop fade used as second animation track */
