@@ -21,7 +21,6 @@ const Bubbles: React.FC = () => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [particles, setParticles] = useState<Array<any>>([]);
   const idRef = useRef(1);
-  const spawnTimer = useRef<number | null>(null);
   const mounted = useRef(true);
 
   // Array of available pop sounds
@@ -52,57 +51,92 @@ const Bubbles: React.FC = () => {
       return false; // пересечений нет
     };
 
-    const spawn = () => {
-      // limit total bubbles to avoid overload
-      const MAX_BUBBLES = 20; // уменьшено с 40
+    // Функция для создания одного пузыря
+    const createBubble = () => {
       setBubbles((s) => {
-        const toAdd = [] as Bubble[];
-        const currentCount = s.length;
-        if (currentCount >= MAX_BUBBLES) return s;
-        // spawn 1..2 bubbles per tick (было 1..3)
-        const spawnCount = Math.floor(random(1, 3));
+        // Не ограничиваем количество - пусть создаются по таймеру
+        
+        let left: number;
+        let size: number;
+        let attempts = 0;
+        const maxAttempts = 10;
         const wobbleTypes = ['wobble-horizontal-soft', 'wobble-horizontal-strong', 'wobble-vertical-soft', 'wobble-vertical-strong'];
         
-        for (let i = 0; i < spawnCount && toAdd.length + currentCount < MAX_BUBBLES; i++) {
-          let left: number;
-          let size: number;
-          let attempts = 0;
-          const maxAttempts = 10;
-          
-          // Пытаемся найти позицию без пересечений
-          do {
-            left = random(5, 95);
-            size = Math.round(random(160, 360)); // увеличено в 2 раза: было 80-180
-            attempts++;
-          } while (checkOverlap(left, size, [...s, ...toAdd]) && attempts < maxAttempts);
-          
-          // Если не нашли свободное место за 10 попыток, пропускаем этот пузырь
-          if (attempts >= maxAttempts) continue;
-          
-          const id = idRef.current++;
-          // медленнее: 26-44 секунд (было 10-35)
-          const duration = Number(random(26, 44).toFixed(2));
-          const delay = Number(random(0, 1.5).toFixed(2));
-          const wobbleType = wobbleTypes[Math.floor(Math.random() * wobbleTypes.length)];
-          const swayAmplitude = Number(random(6, 16).toFixed(1)); // 6-16vw
-          const swayDirection = Math.random() > 0.5 ? 1 : -1;
-          toAdd.push({ id, left, size, duration, delay, wobbleType, swayAmplitude, swayDirection });
-        }
-        return [...s, ...toAdd];
+        // Пытаемся найти позицию без пересечений
+        do {
+          left = random(5, 95);
+          size = Math.round(random(160, 360));
+          attempts++;
+        } while (checkOverlap(left, size, s) && attempts < maxAttempts);
+        
+        // Если не нашли свободное место, не создаем пузырь
+        if (attempts >= maxAttempts) return s;
+        
+        const id = idRef.current++;
+        const duration = Number(random(20, 50).toFixed(2)); // увеличен диапазон для разной скорости: 20-50 сек
+        const delay = 0; // без задержки для непрерывного потока
+        const wobbleType = wobbleTypes[Math.floor(Math.random() * wobbleTypes.length)];
+        const swayAmplitude = Number(random(6, 16).toFixed(1));
+        const swayDirection = Math.random() > 0.5 ? 1 : -1;
+        
+        return [...s, { id, left, size, duration, delay, wobbleType, swayAmplitude, swayDirection }];
       });
-
-      // schedule next spawn (more frequent)
-      const next = random(200, 700);
-      spawnTimer.current = window.setTimeout(() => {
-        if (mounted.current) spawn();
-      }, next);
     };
 
-    spawn();
+    // Непрерывный спавн групп пузырей
+    const startSpawning = () => {
+      const spawnInterval = setInterval(() => {
+        if (mounted.current) {
+          // Создаем группу из 5-7 пузырей
+          const groupSize = Math.floor(random(5, 8)); // 5-7 пузырей
+          for (let i = 0; i < groupSize; i++) {
+            setTimeout(() => {
+              if (mounted.current) createBubble();
+            }, i * 200); // пузыри в группе появляются с интервалом 0.2 сек
+          }
+        }
+      }, 6000); // новая группа каждые 6 секунд (было 8)
+      
+      return spawnInterval;
+    };
+
+    // Таймер для поддержания минимального количества пузырей
+    const maintainMinimum = () => {
+      const checkInterval = setInterval(() => {
+        if (mounted.current) {
+          setBubbles((s) => {
+            const MIN_BUBBLES = 12;
+            if (s.length < MIN_BUBBLES) {
+              // Добавляем пузыри до минимума
+              const toAdd = MIN_BUBBLES - s.length;
+              for (let i = 0; i < toAdd; i++) {
+                setTimeout(() => {
+                  if (mounted.current) createBubble();
+                }, i * 150);
+              }
+            }
+            return s;
+          });
+        }
+      }, 3000); // проверка каждые 3 секунды
+      
+      return checkInterval;
+    };
+
+    // Начальное заполнение
+    for (let i = 0; i < 15; i++) {
+      setTimeout(() => {
+        if (mounted.current) createBubble();
+      }, i * 100); // быстро создаем начальные 15 пузырей
+    }
+
+    const intervalId = startSpawning();
+    const maintainId = maintainMinimum();
 
     return () => {
       mounted.current = false;
-      if (spawnTimer.current) clearTimeout(spawnTimer.current);
+      clearInterval(intervalId);
+      clearInterval(maintainId);
     };
   }, []);
 
