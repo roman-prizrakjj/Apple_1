@@ -14,8 +14,42 @@ type Bubble = {
 
 const random = (min: number, max: number) => Math.random() * (max - min) + min;
 
-// Toggle between bubble styles: 'rainbow' (current) or 'gradient' (new)
-const BUBBLE_STYLE = 'gradient' as 'rainbow' | 'gradient';
+// ===== КОНФИГУРАЦИЯ ПУЗЫРЕЙ =====
+const BUBBLE_CONFIG = {
+  // Стиль пузырей: 'rainbow' или 'gradient'
+  STYLE: 'gradient' as 'rainbow' | 'gradient',
+  
+  // Количество пузырей
+  INITIAL_COUNT: 200,        // Начальное заполнение при старте
+  MIN_COUNT: 100,            // Минимальное количество на экране
+  GROUP_SIZE_MIN: 40,        // Минимум пузырей в группе
+  GROUP_SIZE_MAX: 80,        // Максимум пузырей в группе (будет 5-7)
+  
+  // Размеры пузырей (в пикселях)
+  SIZE_MIN: 160,            // Минимальный размер
+  SIZE_MAX: 360,            // Максимальный размер
+  SIZE_FALLBACK_MIN: 120,   // Минимум для маленьких пузырей (при нехватке места)
+  SIZE_FALLBACK_MAX: 200,   // Максимум для маленьких пузырей
+  
+  // Скорость падения (в секундах)
+  DURATION_MIN: 20,         // Быстрые пузыри
+  DURATION_MAX: 50,         // Медленные пузыри
+  
+  // Покачивание (в vw)
+  SWAY_MIN: 6,              // Минимальная амплитуда
+  SWAY_MAX: 16,             // Максимальная амплитуда
+  
+  // Таймеры (в миллисекундах)
+  GROUP_INTERVAL: 6000,     // Интервал между группами пузырей
+  MAINTAIN_CHECK: 3000,     // Интервал проверки минимального количества
+  INITIAL_SPAWN_DELAY: 100, // Задержка между начальными пузырями
+  GROUP_SPAWN_DELAY: 200,   // Задержка между пузырями в группе
+  MIN_MAINTAIN_DELAY: 150,  // Задержка при добавлении до минимума
+  
+  // Коллизии
+  MIN_DISTANCE: 0,         // Минимальный зазор между пузырями (в пикселях)
+  MAX_SPAWN_ATTEMPTS: 10,   // Максимум попыток найти свободное место
+};
 
 const Bubbles: React.FC = () => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
@@ -42,7 +76,7 @@ const Bubbles: React.FC = () => {
         const existingLeftPx = (bubble.left / 100) * window.innerWidth;
         const existingRadius = bubble.size / 2;
         const distance = Math.abs(newLeftPx - existingLeftPx);
-        const minDistance = newRadius + existingRadius + 20; // 20px минимальный зазор
+        const minDistance = newRadius + existingRadius + BUBBLE_CONFIG.MIN_DISTANCE;
         
         if (distance < minDistance) {
           return true; // пересечение найдено
@@ -59,24 +93,26 @@ const Bubbles: React.FC = () => {
         let left: number;
         let size: number;
         let attempts = 0;
-        const maxAttempts = 10;
         const wobbleTypes = ['wobble-horizontal-soft', 'wobble-horizontal-strong', 'wobble-vertical-soft', 'wobble-vertical-strong'];
         
         // Пытаемся найти позицию без пересечений
         do {
           left = random(5, 95);
-          size = Math.round(random(160, 360));
+          size = Math.round(random(BUBBLE_CONFIG.SIZE_MIN, BUBBLE_CONFIG.SIZE_MAX));
           attempts++;
-        } while (checkOverlap(left, size, s) && attempts < maxAttempts);
+        } while (checkOverlap(left, size, s) && attempts < BUBBLE_CONFIG.MAX_SPAWN_ATTEMPTS);
         
-        // Если не нашли свободное место, не создаем пузырь
-        if (attempts >= maxAttempts) return s;
+        // Если не нашли свободное место, создаем с меньшим размером
+        if (attempts >= BUBBLE_CONFIG.MAX_SPAWN_ATTEMPTS) {
+          size = Math.round(random(BUBBLE_CONFIG.SIZE_FALLBACK_MIN, BUBBLE_CONFIG.SIZE_FALLBACK_MAX));
+          left = random(10, 90);
+        }
         
         const id = idRef.current++;
-        const duration = Number(random(20, 50).toFixed(2)); // увеличен диапазон для разной скорости: 20-50 сек
+        const duration = Number(random(BUBBLE_CONFIG.DURATION_MIN, BUBBLE_CONFIG.DURATION_MAX).toFixed(2));
         const delay = 0; // без задержки для непрерывного потока
         const wobbleType = wobbleTypes[Math.floor(Math.random() * wobbleTypes.length)];
-        const swayAmplitude = Number(random(6, 16).toFixed(1));
+        const swayAmplitude = Number(random(BUBBLE_CONFIG.SWAY_MIN, BUBBLE_CONFIG.SWAY_MAX).toFixed(1));
         const swayDirection = Math.random() > 0.5 ? 1 : -1;
         
         return [...s, { id, left, size, duration, delay, wobbleType, swayAmplitude, swayDirection }];
@@ -88,14 +124,14 @@ const Bubbles: React.FC = () => {
       const spawnInterval = setInterval(() => {
         if (mounted.current) {
           // Создаем группу из 5-7 пузырей
-          const groupSize = Math.floor(random(5, 8)); // 5-7 пузырей
+          const groupSize = Math.floor(random(BUBBLE_CONFIG.GROUP_SIZE_MIN, BUBBLE_CONFIG.GROUP_SIZE_MAX));
           for (let i = 0; i < groupSize; i++) {
             setTimeout(() => {
               if (mounted.current) createBubble();
-            }, i * 200); // пузыри в группе появляются с интервалом 0.2 сек
+            }, i * BUBBLE_CONFIG.GROUP_SPAWN_DELAY);
           }
         }
-      }, 6000); // новая группа каждые 6 секунд (было 8)
+      }, BUBBLE_CONFIG.GROUP_INTERVAL);
       
       return spawnInterval;
     };
@@ -105,29 +141,28 @@ const Bubbles: React.FC = () => {
       const checkInterval = setInterval(() => {
         if (mounted.current) {
           setBubbles((s) => {
-            const MIN_BUBBLES = 12;
-            if (s.length < MIN_BUBBLES) {
+            if (s.length < BUBBLE_CONFIG.MIN_COUNT) {
               // Добавляем пузыри до минимума
-              const toAdd = MIN_BUBBLES - s.length;
+              const toAdd = BUBBLE_CONFIG.MIN_COUNT - s.length;
               for (let i = 0; i < toAdd; i++) {
                 setTimeout(() => {
                   if (mounted.current) createBubble();
-                }, i * 150);
+                }, i * BUBBLE_CONFIG.MIN_MAINTAIN_DELAY);
               }
             }
             return s;
           });
         }
-      }, 3000); // проверка каждые 3 секунды
+      }, BUBBLE_CONFIG.MAINTAIN_CHECK);
       
       return checkInterval;
     };
 
     // Начальное заполнение
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < BUBBLE_CONFIG.INITIAL_COUNT; i++) {
       setTimeout(() => {
         if (mounted.current) createBubble();
-      }, i * 100); // быстро создаем начальные 15 пузырей
+      }, i * BUBBLE_CONFIG.INITIAL_SPAWN_DELAY);
     }
 
     const intervalId = startSpawning();
@@ -248,7 +283,7 @@ const Bubbles: React.FC = () => {
           }
         >
           <div 
-            className={`bubble__inner bubble__inner--${BUBBLE_STYLE}`}
+            className={`bubble__inner bubble__inner--${BUBBLE_CONFIG.STYLE}`}
             style={{
               animationName: b.wobbleType,
               animationDuration: '2s',
@@ -256,7 +291,7 @@ const Bubbles: React.FC = () => {
               animationIterationCount: 'infinite'
             }}
           >
-            {BUBBLE_STYLE === 'rainbow' && <span></span>}
+            {BUBBLE_CONFIG.STYLE === 'rainbow' && <span></span>}
           </div>
         </div>
       ))}
