@@ -33,6 +33,11 @@ const MenuPage: React.FC<MenuPageProps> = ({ onBackToStart }) => {
     }, 2000);
   };
 
+  const handleInactivityTimeout = () => {
+    // При неактивности возвращаемся на главный экран
+    onBackToStart();
+  };
+
   return (
     <div className="menu-page">
       <div
@@ -51,7 +56,10 @@ const MenuPage: React.FC<MenuPageProps> = ({ onBackToStart }) => {
       />
 
       {/* interactive bubbles layer */}
-      <Bubbles onVideoTrigger={handleVideoTrigger} />
+      <Bubbles 
+        onVideoTrigger={handleVideoTrigger}
+        onInactivityTimeout={handleInactivityTimeout}
+      />
 
       {/* Video overlay */}
       {showVideo && (

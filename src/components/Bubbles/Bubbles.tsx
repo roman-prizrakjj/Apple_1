@@ -29,6 +29,10 @@ const BUBBLE_CONFIG = {
   VIDEO_TRIGGER_COUNT: 5,   // Количество пузырей, которые нужно лопнуть для запуска видео
   VIDEO_PATH: '/assets/video.mp4', // Путь к видео файлу
   
+  // Автовозврат при неактивности
+  ENABLE_INACTIVITY_TIMEOUT: true,  // Включить/выключить автовозврат на главный экран
+  INACTIVITY_TIMEOUT: 20000,        // Время неактивности в миллисекундах (30 секунд)
+  
   // Количество пузырей
   INITIAL_COUNT: 0,        // Начальное заполнение при старте
   MIN_COUNT: 3,            // Минимальное количество на экране
@@ -63,9 +67,10 @@ const BUBBLE_CONFIG = {
 
 interface BubblesProps {
   onVideoTrigger?: () => void;
+  onInactivityTimeout?: () => void;
 }
 
-const Bubbles: React.FC<BubblesProps> = ({ onVideoTrigger }) => {
+const Bubbles: React.FC<BubblesProps> = ({ onVideoTrigger, onInactivityTimeout }) => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [particles, setParticles] = useState<Array<any>>([]);
   const [poppedCount, setPoppedCount] = useState(0);
@@ -73,6 +78,7 @@ const Bubbles: React.FC<BubblesProps> = ({ onVideoTrigger }) => {
   const idRef = useRef(1);
   const mounted = useRef(true);
   const videoTriggered = useRef(false);
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Array of available pop sounds
   const soundFiles = [
@@ -80,6 +86,32 @@ const Bubbles: React.FC<BubblesProps> = ({ onVideoTrigger }) => {
     '/assets/bubble-pop-v3.wav',
     '/assets/bubble-pop-v4.wav'
   ];
+
+  // Функция для сброса таймера неактивности
+  const resetInactivityTimer = () => {
+    if (!BUBBLE_CONFIG.ENABLE_INACTIVITY_TIMEOUT || !onInactivityTimeout) return;
+    
+    // Очищаем старый таймер
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    // Запускаем новый таймер
+    inactivityTimerRef.current = setTimeout(() => {
+      onInactivityTimeout();
+    }, BUBBLE_CONFIG.INACTIVITY_TIMEOUT);
+  };
+
+  // Запуск таймера при монтировании и очистка при размонтировании
+  useEffect(() => {
+    resetInactivityTimer();
+    
+    return () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     mounted.current = true;
@@ -221,6 +253,9 @@ const Bubbles: React.FC<BubblesProps> = ({ onVideoTrigger }) => {
   };
 
   const handlePop = (id: number, event: React.MouseEvent | React.TouchEvent) => {
+    // Сбрасываем таймер неактивности при каждом взаимодействии
+    resetInactivityTimer();
+    
     const el = document.getElementById(`bubble-${id}`);
     if (el) {
       el.classList.add('pop');
