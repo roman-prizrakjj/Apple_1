@@ -3,6 +3,12 @@ import React from 'react';
 import './MenuPage.css';
 import Bubbles from '../Bubbles/Bubbles';
 
+// Конфигурация фоновых слоев
+const BACKGROUND_IMAGES = {
+  BACKGROUND: '/assets/background_prod.png',
+  FOREGROUND: '/assets/product-foreground.png',
+};
+
 const MenuPage: React.FC = () => {
   return (
     <div className="menu-page">
@@ -15,7 +21,7 @@ const MenuPage: React.FC = () => {
           width: '100%',
           height: '100%',
           zIndex: 0,
-          backgroundImage: 'url(/assets/bg-gradient.png)',
+          backgroundImage: `url(${BACKGROUND_IMAGES.BACKGROUND})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
@@ -24,7 +30,7 @@ const MenuPage: React.FC = () => {
       {/* Foreground product image (full-width, above background, below UI content) */}
       <div className="menu-page__foreground" aria-hidden="true">
         <img
-          src="/assets/product-foreground1.png"
+          src={BACKGROUND_IMAGES.FOREGROUND}
           alt=""
           className="menu-page__foreground-img"
         />
