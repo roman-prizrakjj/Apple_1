@@ -9,7 +9,7 @@
 .bubble {
   position: absolute;
   /* start above the visible area so bubbles appear from off-screen */
-  top: -20vh;
+  top: -30vh;
   transform: translateY(0);
   border-radius: 50%;
   display: block;
