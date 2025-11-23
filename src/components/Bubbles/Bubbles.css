@@ -24,6 +24,21 @@
   animation-fill-mode: forwards, forwards, forwards;
 }
 
+/* Отключение эффекта затухания (fade) */
+.bubble.no-fade {
+  animation-name: floatUpNoFade, breathe, popFade;
+}
+
+/* Отключение эффекта дыхания (breathe) */
+.bubble.no-breathe {
+  animation-name: floatUp, none, popFade;
+}
+
+/* Отключение обоих эффектов */
+.bubble.no-fade.no-breathe {
+  animation-name: floatUpNoFade, none, popFade;
+}
+
 /* === RAINBOW STYLE (default) === */
 .bubble__inner--rainbow {
   width: 100%;
@@ -66,6 +81,11 @@
     bubble-pulse 12s ease-in-out infinite;
 }
 
+/* Отключение shimmer эффекта */
+.bubble__inner--gradient.no-shimmer {
+  animation: bubble-pulse 12s ease-in-out infinite;
+}
+
 /* Rainbow style highlights */
 .bubble__inner--rainbow::before {
   content: '';
@@ -96,6 +116,51 @@
   left: 36%;
   top: 15%;
   filter: blur(2.5px);
+}
+
+/* === BLUE STYLE (saturated blue bubbles) === */
+.bubble__inner--blue {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  background: radial-gradient(circle at 30% 30%,
+    rgba(240, 252, 255, 1.0) 0%,
+    rgba(215, 240, 255, 0.95) 25%,
+    rgba(170, 210, 250, 0.82) 55%,
+    rgba(140, 190, 240, 0.70) 75%,
+    rgba(140, 190, 240, 0.10) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 0 55px rgba(152, 197, 240, 0.75),
+    0 0 110px rgba(152, 197, 240, 0.40),
+    inset 0 0 28px rgba(255, 255, 255, 0.45);
+  animation:
+    shimmer 4s ease-in-out infinite alternate,
+    bubble-pulse 7s ease-in-out infinite;
+}
+
+/* Отключение shimmer эффекта */
+.bubble__inner--blue.no-shimmer {
+  animation: bubble-pulse 7s ease-in-out infinite;
+}
+
+.bubble__inner--blue::after {
+  content: "";
+  position: absolute;
+  top: 18%;
+  left: 22%;
+  width: 46%;
+  height: 32%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 30% 30%,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  pointer-events: none;
+  opacity: 0.85;
 }
 
 /* Gradient style highlight */
@@ -173,6 +238,36 @@
   }
   95% {
     opacity: 0.6;
+  }
+  100% { 
+    transform: translate(
+      calc(var(--sway-direction, 1) * var(--sway-amplitude, 0vw) * -0.5),
+      170vh
+    ); 
+    opacity: 0; 
+  }
+}
+
+/* Анимация движения без затухания (постоянная прозрачность) */
+@keyframes floatUpNoFade {
+  0% { 
+    transform: translate(
+      calc(var(--sway-direction, 1) * var(--sway-amplitude, 0vw) * -0.5),
+      0
+    ); 
+    opacity: 0; 
+  }
+  5% {
+    opacity: 0.95;
+  }
+  50% { 
+    transform: translate(
+      calc(var(--sway-direction, 1) * var(--sway-amplitude, 0vw) * 0.5),
+      80vh
+    );
+  }
+  95% {
+    opacity: 0.95;
   }
   100% { 
     transform: translate(

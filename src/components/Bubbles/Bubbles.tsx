@@ -16,8 +16,18 @@ const random = (min: number, max: number) => Math.random() * (max - min) + min;
 
 // ===== КОНФИГУРАЦИЯ ПУЗЫРЕЙ =====
 const BUBBLE_CONFIG = {
-  // Стиль пузырей: 'rainbow' или 'gradient'
-  STYLE: 'gradient' as 'rainbow' | 'gradient',
+  // Стиль пузырей: 'rainbow', 'gradient' или 'blue'
+  STYLE: 'blue' as 'rainbow' | 'gradient' | 'blue',
+  
+  // Эффекты анимации
+  ENABLE_SHIMMER: false,    // Включить/выключить эффект переливания цвета у пузырей
+  ENABLE_FADE: false,       // Включить/выключить затухание пузырей при падении (opacity)
+  ENABLE_BREATHE: false,    // Включить/выключить эффект "дыхания" (изменение яркости)
+  
+  // Видео триггер
+  ENABLE_VIDEO: true,       // Включить/выключить запуск видео после лопания пузырей
+  VIDEO_TRIGGER_COUNT: 5,   // Количество пузырей, которые нужно лопнуть для запуска видео
+  VIDEO_PATH: '/assets/video.mp4', // Путь к видео файлу
   
   // Количество пузырей
   INITIAL_COUNT: 20,        // Начальное заполнение при старте
@@ -51,11 +61,18 @@ const BUBBLE_CONFIG = {
   MAX_SPAWN_ATTEMPTS: 10,   // Максимум попыток найти свободное место
 };
 
-const Bubbles: React.FC = () => {
+interface BubblesProps {
+  onVideoTrigger?: () => void;
+}
+
+const Bubbles: React.FC<BubblesProps> = ({ onVideoTrigger }) => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [particles, setParticles] = useState<Array<any>>([]);
+  const [poppedCount, setPoppedCount] = useState(0);
+  const [spawningEnabled, setSpawningEnabled] = useState(true);
   const idRef = useRef(1);
   const mounted = useRef(true);
+  const videoTriggered = useRef(false);
 
   // Array of available pop sounds
   const soundFiles = [
@@ -122,12 +139,12 @@ const Bubbles: React.FC = () => {
     // Непрерывный спавн групп пузырей
     const startSpawning = () => {
       const spawnInterval = setInterval(() => {
-        if (mounted.current) {
+        if (mounted.current && spawningEnabled) {
           // Создаем группу из 5-7 пузырей
           const groupSize = Math.floor(random(BUBBLE_CONFIG.GROUP_SIZE_MIN, BUBBLE_CONFIG.GROUP_SIZE_MAX));
           for (let i = 0; i < groupSize; i++) {
             setTimeout(() => {
-              if (mounted.current) createBubble();
+              if (mounted.current && spawningEnabled) createBubble();
             }, i * BUBBLE_CONFIG.GROUP_SPAWN_DELAY);
           }
         }
@@ -139,14 +156,14 @@ const Bubbles: React.FC = () => {
     // Таймер для поддержания минимального количества пузырей
     const maintainMinimum = () => {
       const checkInterval = setInterval(() => {
-        if (mounted.current) {
+        if (mounted.current && spawningEnabled) {
           setBubbles((s) => {
             if (s.length < BUBBLE_CONFIG.MIN_COUNT) {
               // Добавляем пузыри до минимума
               const toAdd = BUBBLE_CONFIG.MIN_COUNT - s.length;
               for (let i = 0; i < toAdd; i++) {
                 setTimeout(() => {
-                  if (mounted.current) createBubble();
+                  if (mounted.current && spawningEnabled) createBubble();
                 }, i * BUBBLE_CONFIG.MIN_MAINTAIN_DELAY);
               }
             }
@@ -173,7 +190,35 @@ const Bubbles: React.FC = () => {
       clearInterval(intervalId);
       clearInterval(maintainId);
     };
-  }, []);
+  }, [spawningEnabled]);
+
+  // Функция для лопания всех оставшихся пузырей
+  const popAllBubbles = () => {
+    const currentBubbles = [...bubbles];
+    
+    // Лопаем все пузыри одновременно (без задержки и БЕЗ звука)
+    currentBubbles.forEach((bubble) => {
+      const el = document.getElementById(`bubble-${bubble.id}`);
+      if (el) {
+        el.classList.add('pop');
+        // Звук при массовом лопании отключен
+      }
+      
+      // Remove bubble after pop animation
+      setTimeout(() => {
+        setBubbles((s) => s.filter((b) => b.id !== bubble.id));
+      }, 350);
+    });
+    
+    // Вызываем callback для запуска видео после того как все пузыри исчезнут
+    if (BUBBLE_CONFIG.ENABLE_VIDEO && onVideoTrigger && !videoTriggered.current) {
+      videoTriggered.current = true;
+      const totalTime = 400; // время анимации лопания
+      setTimeout(() => {
+        onVideoTrigger();
+      }, totalTime);
+    }
+  };
 
   const handlePop = (id: number, event: React.MouseEvent | React.TouchEvent) => {
     const el = document.getElementById(`bubble-${id}`);
@@ -189,6 +234,26 @@ const Bubbles: React.FC = () => {
       audio.play().catch(() => {});
     } catch (e) {
       // ignore
+    }
+    
+    // Увеличиваем счётчик лопнутых пузырей
+    if (BUBBLE_CONFIG.ENABLE_VIDEO) {
+      setPoppedCount((prev) => {
+        const newCount = prev + 1;
+        
+        // Проверяем, достигли ли триггера
+        if (newCount >= BUBBLE_CONFIG.VIDEO_TRIGGER_COUNT && !videoTriggered.current) {
+          // Останавливаем спавн новых пузырей
+          setSpawningEnabled(false);
+          
+          // Лопаем все оставшиеся пузыри
+          setTimeout(() => {
+            popAllBubbles();
+          }, 100);
+        }
+        
+        return newCount;
+      });
     }
     
     // Get click/touch coordinates
@@ -259,7 +324,7 @@ const Bubbles: React.FC = () => {
         <div
           key={b.id}
           id={`bubble-${b.id}`}
-          className="bubble"
+          className={`bubble ${!BUBBLE_CONFIG.ENABLE_FADE ? 'no-fade' : ''} ${!BUBBLE_CONFIG.ENABLE_BREATHE ? 'no-breathe' : ''}`}
           onClick={(e) => handlePop(b.id, e)}
           onTouchStart={(e) => handlePop(b.id, e)}
           onAnimationEnd={(e) => {
@@ -283,7 +348,7 @@ const Bubbles: React.FC = () => {
           }
         >
           <div 
-            className={`bubble__inner bubble__inner--${BUBBLE_CONFIG.STYLE}`}
+            className={`bubble__inner bubble__inner--${BUBBLE_CONFIG.STYLE} ${!BUBBLE_CONFIG.ENABLE_SHIMMER ? 'no-shimmer' : ''}`}
             style={{
               animationName: b.wobbleType,
               animationDuration: '2s',
