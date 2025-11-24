@@ -123,27 +123,35 @@ class OSCClient {
       return;
     }
 
-    const command = this.config.osc.commands[screenName];
-    if (!command) {
+    const commands = this.config.osc.commands[screenName];
+    if (!commands) {
       console.warn(`[OSC] Unknown screen name: ${screenName}`);
       return;
     }
 
-    try {
-      this.udpPort.send({
-        address: command,
-        args: [
-          {
-            type: 's', // string
-            value: screenName
-          }
-        ]
-      });
-      
-      console.log(`[OSC] Sent: ${command} (${screenName})`);
-    } catch (error) {
-      console.error('[OSC] Failed to send message:', error);
-    }
+    // Поддержка как массива команд, так и старого формата (строка)
+    const commandList = Array.isArray(commands) ? commands : [{ address: commands, delay: 0 }];
+
+    // Отправляем каждую команду с задержкой
+    commandList.forEach((cmd, index) => {
+      setTimeout(() => {
+        try {
+          this.udpPort.send({
+            address: cmd.address,
+            args: [
+              {
+                type: 's', // string
+                value: screenName
+              }
+            ]
+          });
+          
+          console.log(`[OSC] Sent [${index + 1}/${commandList.length}]: ${cmd.address} (delay: ${cmd.delay}ms)`);
+        } catch (error) {
+          console.error(`[OSC] Failed to send message ${cmd.address}:`, error);
+        }
+      }, cmd.delay || 0);
+    });
   }
 
   /**

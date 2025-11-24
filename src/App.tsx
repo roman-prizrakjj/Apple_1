@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import StartScreen from './components/StartScreen/StartScreen';
 import MenuPage from './components/MenuPage/MenuPage';
+import { loadConfig, getConfig } from './services/configService';
 import './App.css';
 
 type ViewType = 'start' | 'menu';
@@ -8,22 +9,39 @@ type ViewType = 'start' | 'menu';
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('start');
   const [fadeIn, setFadeIn] = useState(true);
+  const [inactivityTimeout, setInactivityTimeout] = useState(20000);
 
-  // Отправляем OSC команду при смене экрана
+  // Загружаем конфиг при старте приложения
   useEffect(() => {
-    if (window.electronAPI) {
-      window.electronAPI.sendScreenChange(currentView);
-      console.log(`[App] Screen changed to: ${currentView}`);
-    }
-  }, [currentView]);
+    loadConfig().then(() => {
+      const config = getConfig();
+      setInactivityTimeout(config.inactivityTimeout);
+      console.log('[App] Inactivity timeout set to:', config.inactivityTimeout, 'ms');
+    });
+  }, []);
 
+  // Обработчик клика на кнопку "Начать"
   const handleStart = () => {
     setCurrentView('menu');
+    
+    // Отправляем OSC команду при клике на "Начать"
+    if (window.electronAPI) {
+      window.electronAPI.sendScreenChange('menu');
+      console.log('[App] User clicked Start button → sending /screen/menu');
+    }
   };
 
+  // Обработчик возврата на главный экран (по таймеру неактивности)
   const handleBackToStart = () => {
     setCurrentView('start');
     setFadeIn(false);
+    
+    // Отправляем OSC команду при возврате по таймеру
+    if (window.electronAPI) {
+      window.electronAPI.sendScreenChange('start');
+      console.log('[App] Inactivity timeout → sending /screen/start');
+    }
+    
     // Триггерим появление через небольшую задержку
     setTimeout(() => setFadeIn(true), 50);
   };
@@ -44,7 +62,10 @@ const App: React.FC = () => {
       )}
       
       {currentView === 'menu' && (
-        <MenuPage onBackToStart={handleBackToStart} />
+        <MenuPage 
+          onBackToStart={handleBackToStart}
+          inactivityTimeout={inactivityTimeout}
+        />
       )}
     </div>
   );

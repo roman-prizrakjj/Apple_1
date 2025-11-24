@@ -8,9 +8,10 @@ const BACKGROUND_IMAGE = '/assets/background_prod.png';
 
 interface MenuPageProps {
   onBackToStart: () => void;
+  inactivityTimeout?: number;
 }
 
-const MenuPage: React.FC<MenuPageProps> = ({ onBackToStart }) => {
+const MenuPage: React.FC<MenuPageProps> = ({ onBackToStart, inactivityTimeout = 20000 }) => {
   const [showVideo, setShowVideo] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [fadeOpacity, setFadeOpacity] = useState(0);
@@ -59,6 +60,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onBackToStart }) => {
       <Bubbles 
         onVideoTrigger={handleVideoTrigger}
         onInactivityTimeout={handleInactivityTimeout}
+        inactivityTimeout={inactivityTimeout}
       />
 
       {/* Video overlay */}

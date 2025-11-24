@@ -36,7 +36,7 @@ app.whenReady().then(() => {
   // Инициализируем OSC клиент
   const configPath = isDev 
     ? path.join(__dirname, '../config.json')
-    : path.join(process.resourcesPath, '../config.json');
+    : path.join(path.dirname(app.getPath('exe')), 'config.json');
   
   oscClient.init(configPath);
   

@@ -68,12 +68,13 @@ const BUBBLE_CONFIG = {
 interface BubblesProps {
   onVideoTrigger?: () => void;
   onInactivityTimeout?: () => void;
+  inactivityTimeout?: number;
 }
 
-const Bubbles: React.FC<BubblesProps> = ({ onVideoTrigger, onInactivityTimeout }) => {
+const Bubbles: React.FC<BubblesProps> = ({ onVideoTrigger, onInactivityTimeout, inactivityTimeout = BUBBLE_CONFIG.INACTIVITY_TIMEOUT }) => {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [particles, setParticles] = useState<Array<any>>([]);
-  const [poppedCount, setPoppedCount] = useState(0);
+  const [_poppedCount, setPoppedCount] = useState(0);
   const [spawningEnabled, setSpawningEnabled] = useState(true);
   const idRef = useRef(1);
   const mounted = useRef(true);
@@ -96,10 +97,10 @@ const Bubbles: React.FC<BubblesProps> = ({ onVideoTrigger, onInactivityTimeout }
       clearTimeout(inactivityTimerRef.current);
     }
     
-    // Запускаем новый таймер
+    // Запускаем новый таймер с настраиваемым временем
     inactivityTimerRef.current = setTimeout(() => {
       onInactivityTimeout();
-    }, BUBBLE_CONFIG.INACTIVITY_TIMEOUT);
+    }, inactivityTimeout);
   };
 
   // Запуск таймера при монтировании и очистка при размонтировании

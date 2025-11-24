@@ -4,8 +4,23 @@
     "host": "127.0.0.1",
     "port": 8000,
     "commands": {
-      "start": "/screen/start",
-      "menu": "/screen/menu"
+      "start": [
+        {
+          "address": "/screen/start",
+          "delay": 0
+        },
+        {
+          "address": "/another/command",
+          "delay": 500
+        }
+      ],
+      "menu": [
+        {
+          "address": "/screen/menu",
+          "delay": 0
+        }
+      ]
     }
-  }
+  },
+  "inactivityTimeout": 20000
 }
