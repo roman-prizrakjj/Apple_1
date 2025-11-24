@@ -8,9 +8,9 @@ interface StartScreenProps {
 const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
   // Звуки кнопки
   const soundFiles = [
-    '/assets/bubble-pop-v2.wav',
-    '/assets/bubble-pop-v3.wav',
-    '/assets/bubble-pop-v4.wav'
+    `${import.meta.env.BASE_URL}assets/bubble-pop-v2.wav`,
+    `${import.meta.env.BASE_URL}assets/bubble-pop-v3.wav`,
+    `${import.meta.env.BASE_URL}assets/bubble-pop-v4.wav`
   ];
 
   const handleButtonClick = () => {

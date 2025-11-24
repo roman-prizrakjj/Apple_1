@@ -83,9 +83,9 @@ const Bubbles: React.FC<BubblesProps> = ({ onVideoTrigger, onInactivityTimeout, 
 
   // Array of available pop sounds
   const soundFiles = [
-    '/assets/bubble-pop-v2.wav',
-    '/assets/bubble-pop-v3.wav',
-    '/assets/bubble-pop-v4.wav'
+    `${import.meta.env.BASE_URL}assets/bubble-pop-v2.wav`,
+    `${import.meta.env.BASE_URL}assets/bubble-pop-v3.wav`,
+    `${import.meta.env.BASE_URL}assets/bubble-pop-v4.wav`
   ];
 
   // Функция для сброса таймера неактивности
