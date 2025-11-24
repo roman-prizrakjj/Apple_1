@@ -4,7 +4,8 @@ import './MenuPage.css';
 import Bubbles from '../Bubbles/Bubbles';
 
 // Конфигурация фонового слоя
-const BACKGROUND_IMAGE = '/assets/background_prod.png';
+// import.meta.env.BASE_URL автоматически подставит правильный путь для dev и production
+const BACKGROUND_IMAGE = `${import.meta.env.BASE_URL}assets/background_prod.png`;
 
 interface MenuPageProps {
   onBackToStart: () => void;

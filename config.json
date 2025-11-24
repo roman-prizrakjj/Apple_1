@@ -6,17 +6,21 @@
     "commands": {
       "start": [
         {
-          "address": "/screen/start",
+          "address": "/composition/groups/1/columns/2/connect",
           "delay": 0
         },
         {
-          "address": "/another/command",
-          "delay": 500
+          "address": "/composition/selectedcolumn/connect",
+          "delay": 0
         }
       ],
       "menu": [
         {
-          "address": "/screen/menu",
+          "address": "/composition/groups/1/columns/1/connect",
+          "delay": 0
+        },
+        {
+          "address": "/composition/selectedcolumn/connect",
           "delay": 0
         }
       ]

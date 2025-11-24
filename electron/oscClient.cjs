@@ -36,11 +36,13 @@ class OSCClient {
    */
   loadConfig() {
     try {
+      console.log('[OSC] Trying to load config from:', this.configPath);
+      console.log('[OSC] Config file exists:', fs.existsSync(this.configPath));
       const configData = fs.readFileSync(this.configPath, 'utf8');
       this.config = JSON.parse(configData);
       console.log('[OSC] Config loaded successfully');
     } catch (error) {
-      console.error('[OSC] Failed to load config:', error.message);
+      console.error('[OSC] Failed to load config:', error.message, ', config.json not found in', this.configPath);
       // Используем дефолтный конфиг
       this.config = {
         osc: {
@@ -92,26 +94,36 @@ class OSCClient {
       this.configWatcher.close();
     }
 
-    this.configWatcher = fs.watch(this.configPath, (eventType) => {
-      if (eventType === 'change') {
-        console.log('[OSC] Config file changed, reloading...');
-        
-        // Небольшая задержка перед чтением (файл может быть не полностью записан)
-        setTimeout(() => {
-          this.loadConfig();
-          
-          // Пересоздаем UDP порт с новыми настройками
-          if (this.config.osc.enabled) {
-            this.createUDPPort();
-          } else if (this.udpPort) {
-            this.udpPort.close();
-            this.udpPort = null;
-          }
-        }, 100);
-      }
-    });
+    // Не следим за файлами внутри asar (fs.watch не работает с asar)
+    if (this.configPath.includes('.asar')) {
+      console.log('[OSC] Config inside asar, watcher disabled');
+      return;
+    }
 
-    console.log('[OSC] Config watcher started');
+    try {
+      this.configWatcher = fs.watch(this.configPath, (eventType) => {
+        if (eventType === 'change') {
+          console.log('[OSC] Config file changed, reloading...');
+          
+          // Небольшая задержка перед чтением (файл может быть не полностью записан)
+          setTimeout(() => {
+            this.loadConfig();
+            
+            // Пересоздаем UDP порт с новыми настройками
+            if (this.config.osc.enabled) {
+              this.createUDPPort();
+            } else if (this.udpPort) {
+              this.udpPort.close();
+              this.udpPort = null;
+            }
+          }, 100);
+        }
+      });
+
+      console.log('[OSC] Config watcher started');
+    } catch (error) {
+      console.warn('[OSC] Failed to start config watcher:', error.message);
+    }
   }
 
   /**
@@ -136,14 +148,9 @@ class OSCClient {
     commandList.forEach((cmd, index) => {
       setTimeout(() => {
         try {
+          // Отправляем только адрес без параметров
           this.udpPort.send({
-            address: cmd.address,
-            args: [
-              {
-                type: 's', // string
-                value: screenName
-              }
-            ]
+            address: cmd.address
           });
           
           console.log(`[OSC] Sent [${index + 1}/${commandList.length}]: ${cmd.address} (delay: ${cmd.delay}ms)`);

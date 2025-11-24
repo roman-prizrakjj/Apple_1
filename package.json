@@ -46,6 +46,7 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
+      "config.json",
       "!dist/**/*.map"
     ],
     "win": {
