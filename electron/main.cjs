@@ -1,5 +1,6 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const oscClient = require('./oscClient.cjs');
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -14,7 +15,8 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: !isDev
+      webSecurity: !isDev,
+      preload: path.join(__dirname, 'preload.cjs')
     }
   });
 
@@ -31,6 +33,13 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // Инициализируем OSC клиент
+  const configPath = isDev 
+    ? path.join(__dirname, '../config.json')
+    : path.join(process.resourcesPath, '../config.json');
+  
+  oscClient.init(configPath);
+  
   createWindow();
 
   app.on('activate', function () {
@@ -39,5 +48,12 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', function () {
+  oscClient.close();
   if (process.platform !== 'darwin') app.quit();
+});
+
+// IPC обработчик для отправки OSC команд
+ipcMain.on('screen-changed', (event, screenName) => {
+  console.log(`[IPC] Screen changed to: ${screenName}`);
+  oscClient.sendScreenChange(screenName);
 });

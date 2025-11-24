@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import StartScreen from './components/StartScreen/StartScreen';
 import MenuPage from './components/MenuPage/MenuPage';
 import './App.css';
@@ -8,6 +8,14 @@ type ViewType = 'start' | 'menu';
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('start');
   const [fadeIn, setFadeIn] = useState(true);
+
+  // Отправляем OSC команду при смене экрана
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.sendScreenChange(currentView);
+      console.log(`[App] Screen changed to: ${currentView}`);
+    }
+  }, [currentView]);
 
   const handleStart = () => {
     setCurrentView('menu');
