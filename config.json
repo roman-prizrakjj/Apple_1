@@ -2,11 +2,11 @@
   "osc": {
     "enabled": true,
     "host": "127.0.0.1",
-    "port": 8000,
+    "port": 9000,
     "commands": {
       "start": [
         {
-          "address": "/composition/groups/1/columns/2/connect",
+          "address": "/composition/groups/1/columns/1/connect",
           "delay": 0
         },
         {
@@ -16,7 +16,7 @@
       ],
       "menu": [
         {
-          "address": "/composition/groups/1/columns/1/connect",
+          "address": "/composition/groups/1/columns/2/connect",
           "delay": 0
         },
         {
